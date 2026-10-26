@@ -50,3 +50,4 @@ export function AvatarPicker({ selectedAvatar, onSelectAvatar }) {
     </div>
   );
 }
+

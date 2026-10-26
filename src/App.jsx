@@ -5,6 +5,7 @@ import { SessionHeader } from './components/layout/SessionHeader';
 import { ParticipantTable } from './components/poker/ParticipantTable';
 import { VotingDeck } from './components/poker/VotingDeck';
 import { SummaryStats } from './components/poker/SummaryStats';
+import { DebateSpotlight } from './components/poker/DebateSpotlight';
 import { ConsensusCelebration } from './components/poker/ConsensusCelebration';
 import { usePokerSession } from './hooks/usePokerSession';
 import { CircleNotch, WarningCircle } from '@phosphor-icons/react';
@@ -155,6 +156,11 @@ function RoomScreen({ config, onLeaveRoom, onIdUnavailable }) {
         />
 
         {isRevealed && <SummaryStats participants={participants} />}
+
+        <DebateSpotlight
+          participants={participants}
+          isRevealed={isRevealed}
+        />
 
         <VotingDeck
           selectedVote={myVote}

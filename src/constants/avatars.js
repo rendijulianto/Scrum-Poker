@@ -35,3 +35,4 @@ export const TEAM_AVATARS = [
     title: 'Eksekutif Keren',
   },
 ];
+
