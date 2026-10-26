@@ -7,6 +7,7 @@ import { VotingDeck } from './components/poker/VotingDeck';
 import { SummaryStats } from './components/poker/SummaryStats';
 import { DebateSpotlight } from './components/poker/DebateSpotlight';
 import { LiveReactions } from './components/poker/LiveReactions';
+import { SprintHistoryModal } from './components/poker/SprintHistoryModal';
 import { ConsensusCelebration } from './components/poker/ConsensusCelebration';
 import { usePokerSession } from './hooks/usePokerSession';
 import { CircleNotch, WarningCircle } from '@phosphor-icons/react';
@@ -68,6 +69,8 @@ export default function App() {
 }
 
 function RoomScreen({ config, onLeaveRoom, onIdUnavailable }) {
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+
   const {
     topic,
     participants,
@@ -75,6 +78,7 @@ function RoomScreen({ config, onLeaveRoom, onIdUnavailable }) {
     myVote,
     timerEndTime,
     reactions,
+    history,
     isConnecting,
     connectionError,
     submitVote,
@@ -84,6 +88,7 @@ function RoomScreen({ config, onLeaveRoom, onIdUnavailable }) {
     startTimer,
     stopTimer,
     sendReaction,
+    clearHistory,
   } = usePokerSession({
     ...config,
     onIdUnavailable,
@@ -141,6 +146,8 @@ function RoomScreen({ config, onLeaveRoom, onIdUnavailable }) {
         roomId={config.roomId}
         participantCount={participants.length}
         onLeaveRoom={onLeaveRoom}
+        onOpenHistory={() => setIsHistoryOpen(true)}
+        historyCount={history.length}
       />
 
       {/* Konten Utama Sesi Poker */}
@@ -183,6 +190,15 @@ function RoomScreen({ config, onLeaveRoom, onIdUnavailable }) {
       <LiveReactions
         reactions={reactions}
         onSendReaction={sendReaction}
+      />
+
+      {/* Modal Riwayat Estimasi Tiket */}
+      <SprintHistoryModal
+        isOpen={isHistoryOpen}
+        onClose={() => setIsHistoryOpen(false)}
+        history={history}
+        isHost={config.isHost}
+        onClearHistory={clearHistory}
       />
 
       {/* Efek Selebrasi Konsensus */}

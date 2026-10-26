@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Peer from 'peerjs';
 import { PEER_ACTIONS, ROLES } from '../constants/actions';
+import { calculateAverage, checkConsensus } from '../utils/math';
 
 /**
  * Hook utama untuk mengelola sesi Scrum Poker via WebRTC (PeerJS).
@@ -14,6 +15,7 @@ export function usePokerSession({ roomId, userName, role, avatar, isHost, onIdUn
   const [myVote, setMyVote] = useState(null);
   const [timerEndTime, setTimerEndTime] = useState(null);
   const [reactions, setReactions] = useState([]);
+  const [history, setHistory] = useState([]);
 
   // Helper untuk menambah dan membersihkan floating reaction
   const triggerReaction = useCallback((reactionItem) => {
@@ -41,26 +43,31 @@ export function usePokerSession({ roomId, userName, role, avatar, isHost, onIdUn
       setIsRevealed((currentRevealed) => {
         setTopic((currentTopic) => {
           setTimerEndTime((currentTimerEndTime) => {
-            const payload = {
-              topic: stateOverride.topic !== undefined ? stateOverride.topic : currentTopic,
-              isRevealed: stateOverride.isRevealed !== undefined ? stateOverride.isRevealed : currentRevealed,
-              participants: stateOverride.participants !== undefined ? stateOverride.participants : currentParticipants,
-              timerEndTime: stateOverride.timerEndTime !== undefined ? stateOverride.timerEndTime : currentTimerEndTime,
-            };
+            setHistory((currentHistory) => {
+              const payload = {
+                topic: stateOverride.topic !== undefined ? stateOverride.topic : currentTopic,
+                isRevealed: stateOverride.isRevealed !== undefined ? stateOverride.isRevealed : currentRevealed,
+                participants: stateOverride.participants !== undefined ? stateOverride.participants : currentParticipants,
+                timerEndTime: stateOverride.timerEndTime !== undefined ? stateOverride.timerEndTime : currentTimerEndTime,
+                history: stateOverride.history !== undefined ? stateOverride.history : currentHistory,
+              };
 
-            const message = JSON.stringify({
-              type: PEER_ACTIONS.SYNC_STATE,
-              payload,
-            });
+              const message = JSON.stringify({
+                type: PEER_ACTIONS.SYNC_STATE,
+                payload,
+              });
 
-            activeConnectionsRef.current.forEach((conn) => {
-              if (conn.open) {
-                try {
-                  conn.send(message);
-                } catch (err) {
-                  console.error('Gagal mengirim state ke peer:', err);
+              activeConnectionsRef.current.forEach((conn) => {
+                if (conn.open) {
+                  try {
+                    conn.send(message);
+                  } catch (err) {
+                    console.error('Gagal mengirim state ke peer:', err);
+                  }
                 }
-              }
+              });
+
+              return currentHistory;
             });
 
             return currentTimerEndTime;
@@ -134,11 +141,14 @@ export function usePokerSession({ roomId, userName, role, avatar, isHost, onIdUn
           try {
             const data = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
             if (data.type === PEER_ACTIONS.SYNC_STATE) {
-              const { topic: syncedTopic, isRevealed: syncedRevealed, participants: syncedParticipants, timerEndTime: syncedTimer } = data.payload;
+              const { topic: syncedTopic, isRevealed: syncedRevealed, participants: syncedParticipants, timerEndTime: syncedTimer, history: syncedHistory } = data.payload;
               setTopic(syncedTopic || '');
               setIsRevealed(syncedRevealed || false);
               setParticipants(syncedParticipants || []);
               setTimerEndTime(syncedTimer || null);
+              if (syncedHistory) {
+                setHistory(syncedHistory);
+              }
 
               // Perbarui status vote diri sendiri jika ada reset
               if (!syncedRevealed) {
@@ -367,17 +377,49 @@ export function usePokerSession({ roomId, userName, role, avatar, isHost, onIdUn
     }
   }, [userName, isHost, triggerReaction]);
 
-  // Aksi Host: Reset putaran (New Round)
+  // Aksi Host: Reset putaran (New Round) dan simpan ke riwayat
   const resetRound = useCallback(() => {
     if (!isHost) return;
     setIsRevealed(false);
     setMyVote(null);
     setTimerEndTime(null);
+
+    // Arsipkan hasil putaran ke riwayat jika ada voting
+    const hasVotedMembers = participants.some((p) => p.role !== 'SPECTATOR' && p.vote);
+    let updatedHistory = history;
+
+    if (hasVotedMembers) {
+      const avg = calculateAverage(participants);
+      const isCons = checkConsensus(participants);
+      const historyItem = {
+        id: `${Date.now()}-${Math.random()}`,
+        topic: topic.trim() || 'Tiket Tanpa Judul',
+        average: avg,
+        isConsensus: isCons,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        voterCount: participants.filter((p) => p.role !== 'SPECTATOR' && p.vote).length,
+      };
+      updatedHistory = [historyItem, ...history];
+      setHistory(updatedHistory);
+    }
+
     setParticipants((previous) => {
       const resetList = previous.map((p) => ({ ...p, vote: null }));
-      broadcastStateToAll({ isRevealed: false, participants: resetList, timerEndTime: null });
+      broadcastStateToAll({
+        isRevealed: false,
+        participants: resetList,
+        timerEndTime: null,
+        history: updatedHistory,
+      });
       return resetList;
     });
+  }, [isHost, topic, participants, history, broadcastStateToAll]);
+
+  // Aksi Host: Membersihkan riwayat estimasi
+  const clearHistory = useCallback(() => {
+    if (!isHost) return;
+    setHistory([]);
+    broadcastStateToAll({ history: [] });
   }, [isHost, broadcastStateToAll]);
 
   return {
@@ -387,6 +429,7 @@ export function usePokerSession({ roomId, userName, role, avatar, isHost, onIdUn
     myVote,
     timerEndTime,
     reactions,
+    history,
     isConnecting,
     connectionError,
     errorType,
@@ -397,6 +440,7 @@ export function usePokerSession({ roomId, userName, role, avatar, isHost, onIdUn
     startTimer,
     stopTimer,
     sendReaction,
+    clearHistory,
   };
 }
 

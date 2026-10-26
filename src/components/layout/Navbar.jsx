@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Cards, Copy, Check, Users, SignOut, SpeakerHigh, SpeakerSlash } from '@phosphor-icons/react';
+import { Cards, Copy, Check, Users, SignOut, SpeakerHigh, SpeakerSlash, ListBullets } from '@phosphor-icons/react';
 import { soundFx } from '../../utils/sound';
 
-export function Navbar({ roomId, participantCount, onLeaveRoom }) {
+export function Navbar({ roomId, participantCount, onLeaveRoom, onOpenHistory, historyCount = 0 }) {
   const [hasCopied, setHasCopied] = useState(false);
   const [isMuted, setIsMuted] = useState(() => soundFx.getMuted());
 
@@ -48,6 +48,22 @@ export function Navbar({ roomId, participantCount, onLeaveRoom }) {
           <span className="font-medium">{participantCount}</span>
           <span className="hidden sm:inline text-zinc-500">online</span>
         </div>
+
+        {/* Sprint History Button */}
+        <button
+          type="button"
+          onClick={onOpenHistory}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 text-xs font-medium text-zinc-200 transition-colors active:scale-[0.98]"
+          title="Lihat riwayat estimasi tiket"
+        >
+          <ListBullets size={15} className="text-zinc-400" />
+          <span className="hidden md:inline">Riwayat</span>
+          {historyCount > 0 && (
+            <span className="w-4 h-4 rounded-full bg-indigo-600 text-[10px] font-mono text-white flex items-center justify-center font-bold">
+              {historyCount}
+            </span>
+          )}
+        </button>
 
         {/* Sound FX Toggle */}
         <button
