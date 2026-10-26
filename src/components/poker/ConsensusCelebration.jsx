@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import confetti from 'canvas-confetti';
 import { checkConsensus } from '../../utils/math';
+import { soundFx } from '../../utils/sound';
 
 export function ConsensusCelebration({ isRevealed, participants }) {
   useEffect(() => {
@@ -9,8 +10,9 @@ export function ConsensusCelebration({ isRevealed, participants }) {
     const isConsensus = checkConsensus(participants);
     if (!isConsensus) return;
 
-    // Tembakkan confetti selebrasi konsensus
+    // Tembakkan confetti selebrasi konsensus dan bunyikan nada fanfare
     try {
+      soundFx.playConsensus();
       confetti({
         particleCount: 80,
         spread: 70,

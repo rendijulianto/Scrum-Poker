@@ -12,6 +12,7 @@ export function usePokerSession({ roomId, userName, role, avatar, isHost, onIdUn
   const [participants, setParticipants] = useState([]);
   const [isRevealed, setIsRevealed] = useState(false);
   const [myVote, setMyVote] = useState(null);
+  const [timerEndTime, setTimerEndTime] = useState(null);
 
   // Status koneksi
   const [isConnecting, setIsConnecting] = useState(true);
@@ -30,25 +31,30 @@ export function usePokerSession({ roomId, userName, role, avatar, isHost, onIdUn
     setParticipants((currentParticipants) => {
       setIsRevealed((currentRevealed) => {
         setTopic((currentTopic) => {
-          const payload = {
-            topic: stateOverride.topic !== undefined ? stateOverride.topic : currentTopic,
-            isRevealed: stateOverride.isRevealed !== undefined ? stateOverride.isRevealed : currentRevealed,
-            participants: stateOverride.participants !== undefined ? stateOverride.participants : currentParticipants,
-          };
+          setTimerEndTime((currentTimerEndTime) => {
+            const payload = {
+              topic: stateOverride.topic !== undefined ? stateOverride.topic : currentTopic,
+              isRevealed: stateOverride.isRevealed !== undefined ? stateOverride.isRevealed : currentRevealed,
+              participants: stateOverride.participants !== undefined ? stateOverride.participants : currentParticipants,
+              timerEndTime: stateOverride.timerEndTime !== undefined ? stateOverride.timerEndTime : currentTimerEndTime,
+            };
 
-          const message = JSON.stringify({
-            type: PEER_ACTIONS.SYNC_STATE,
-            payload,
-          });
+            const message = JSON.stringify({
+              type: PEER_ACTIONS.SYNC_STATE,
+              payload,
+            });
 
-          activeConnectionsRef.current.forEach((conn) => {
-            if (conn.open) {
-              try {
-                conn.send(message);
-              } catch (err) {
-                console.error('Gagal mengirim state ke peer:', err);
+            activeConnectionsRef.current.forEach((conn) => {
+              if (conn.open) {
+                try {
+                  conn.send(message);
+                } catch (err) {
+                  console.error('Gagal mengirim state ke peer:', err);
+                }
               }
-            }
+            });
+
+            return currentTimerEndTime;
           });
 
           return currentTopic;
@@ -119,10 +125,11 @@ export function usePokerSession({ roomId, userName, role, avatar, isHost, onIdUn
           try {
             const data = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
             if (data.type === PEER_ACTIONS.SYNC_STATE) {
-              const { topic: syncedTopic, isRevealed: syncedRevealed, participants: syncedParticipants } = data.payload;
+              const { topic: syncedTopic, isRevealed: syncedRevealed, participants: syncedParticipants, timerEndTime: syncedTimer } = data.payload;
               setTopic(syncedTopic || '');
               setIsRevealed(syncedRevealed || false);
               setParticipants(syncedParticipants || []);
+              setTimerEndTime(syncedTimer || null);
 
               // Perbarui status vote diri sendiri jika ada reset
               if (!syncedRevealed) {
@@ -288,14 +295,30 @@ export function usePokerSession({ roomId, userName, role, avatar, isHost, onIdUn
     broadcastStateToAll({ isRevealed: true });
   }, [isHost, broadcastStateToAll]);
 
+  // Aksi Host: Memulai hitung mundur timer
+  const startTimer = useCallback((seconds) => {
+    if (!isHost) return;
+    const endTime = Date.now() + seconds * 1000;
+    setTimerEndTime(endTime);
+    broadcastStateToAll({ timerEndTime: endTime });
+  }, [isHost, broadcastStateToAll]);
+
+  // Aksi Host: Menghentikan timer
+  const stopTimer = useCallback(() => {
+    if (!isHost) return;
+    setTimerEndTime(null);
+    broadcastStateToAll({ timerEndTime: null });
+  }, [isHost, broadcastStateToAll]);
+
   // Aksi Host: Reset putaran (New Round)
   const resetRound = useCallback(() => {
     if (!isHost) return;
     setIsRevealed(false);
     setMyVote(null);
+    setTimerEndTime(null);
     setParticipants((previous) => {
       const resetList = previous.map((p) => ({ ...p, vote: null }));
-      broadcastStateToAll({ isRevealed: false, participants: resetList });
+      broadcastStateToAll({ isRevealed: false, participants: resetList, timerEndTime: null });
       return resetList;
     });
   }, [isHost, broadcastStateToAll]);
@@ -305,6 +328,7 @@ export function usePokerSession({ roomId, userName, role, avatar, isHost, onIdUn
     participants,
     isRevealed,
     myVote,
+    timerEndTime,
     isConnecting,
     connectionError,
     errorType,
@@ -312,6 +336,8 @@ export function usePokerSession({ roomId, userName, role, avatar, isHost, onIdUn
     updateTopic,
     revealCards,
     resetRound,
+    startTimer,
+    stopTimer,
   };
 }
 

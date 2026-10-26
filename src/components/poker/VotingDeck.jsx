@@ -1,5 +1,6 @@
 import React from 'react';
 import { FIBONACCI_CARDS } from '../../constants/cards';
+import { soundFx } from '../../utils/sound';
 
 export function VotingDeck({ selectedVote, onSelectVote, disabled, isSpectator }) {
   if (isSpectator) {
@@ -11,6 +12,11 @@ export function VotingDeck({ selectedVote, onSelectVote, disabled, isSpectator }
       </div>
     );
   }
+
+  const handleCardClick = (card) => {
+    soundFx.playCardSelect();
+    onSelectVote(card);
+  };
 
   return (
     <div className="w-full pt-4 pb-2">
@@ -30,7 +36,7 @@ export function VotingDeck({ selectedVote, onSelectVote, disabled, isSpectator }
               key={card}
               type="button"
               disabled={disabled}
-              onClick={() => onSelectVote(card)}
+              onClick={() => handleCardClick(card)}
               className={`relative shrink-0 w-11 h-16 sm:w-13 sm:h-20 rounded-xl font-mono text-base sm:text-lg font-bold transition-all duration-150 flex items-center justify-center select-none active:scale-[0.95] ${
                 disabled
                   ? 'opacity-40 cursor-not-allowed bg-zinc-900 border border-zinc-800 text-zinc-500'

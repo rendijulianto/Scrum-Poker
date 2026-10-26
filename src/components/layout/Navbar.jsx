@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { Cards, Copy, Check, Users, SignOut } from '@phosphor-icons/react';
+import { Cards, Copy, Check, Users, SignOut, SpeakerHigh, SpeakerSlash } from '@phosphor-icons/react';
+import { soundFx } from '../../utils/sound';
 
 export function Navbar({ roomId, participantCount, onLeaveRoom }) {
   const [hasCopied, setHasCopied] = useState(false);
+  const [isMuted, setIsMuted] = useState(() => soundFx.getMuted());
 
   const handleCopyLink = () => {
     const url = `${window.location.origin}${window.location.pathname}?room=${roomId}`;
@@ -10,6 +12,15 @@ export function Navbar({ roomId, participantCount, onLeaveRoom }) {
       setHasCopied(true);
       setTimeout(() => setHasCopied(false), 2000);
     });
+  };
+
+  const handleToggleSound = () => {
+    const nextMuted = !isMuted;
+    setIsMuted(nextMuted);
+    soundFx.setMuted(nextMuted);
+    if (!nextMuted) {
+      soundFx.playCardSelect();
+    }
   };
 
   return (
@@ -37,6 +48,20 @@ export function Navbar({ roomId, participantCount, onLeaveRoom }) {
           <span className="font-medium">{participantCount}</span>
           <span className="hidden sm:inline text-zinc-500">online</span>
         </div>
+
+        {/* Sound FX Toggle */}
+        <button
+          type="button"
+          onClick={handleToggleSound}
+          className={`p-1.5 rounded-lg border transition-colors active:scale-[0.98] ${
+            isMuted
+              ? 'bg-zinc-900 border-zinc-800 text-zinc-500 hover:text-zinc-300'
+              : 'bg-indigo-950/40 border-indigo-500/40 text-indigo-300 hover:text-indigo-200'
+          }`}
+          title={isMuted ? 'Nyalakan efek suara' : 'Bisukan efek suara'}
+        >
+          {isMuted ? <SpeakerSlash size={16} /> : <SpeakerHigh size={16} />}
+        </button>
 
         {/* Copy Link Button */}
         <button
@@ -71,4 +96,3 @@ export function Navbar({ roomId, participantCount, onLeaveRoom }) {
     </header>
   );
 }
-

@@ -72,12 +72,15 @@ function RoomScreen({ config, onLeaveRoom, onIdUnavailable }) {
     participants,
     isRevealed,
     myVote,
+    timerEndTime,
     isConnecting,
     connectionError,
     submitVote,
     updateTopic,
     revealCards,
     resetRound,
+    startTimer,
+    stopTimer,
   } = usePokerSession({
     ...config,
     onIdUnavailable,
@@ -147,6 +150,9 @@ function RoomScreen({ config, onLeaveRoom, onIdUnavailable }) {
           onReveal={revealCards}
           onReset={resetRound}
           hasVotes={hasAnyVotes}
+          timerEndTime={timerEndTime}
+          onStartTimer={startTimer}
+          onStopTimer={stopTimer}
         />
 
         <ParticipantTable
