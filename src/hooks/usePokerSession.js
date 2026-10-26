@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import Peer from 'peerjs';
 import { PEER_ACTIONS, ROLES } from '../constants/actions';
 import { calculateAverage, checkConsensus } from '../utils/math';
+import { soundFx } from '../utils/sound';
 
 /**
  * Hook utama untuk mengelola sesi Scrum Poker via WebRTC (PeerJS).
@@ -17,9 +18,10 @@ export function usePokerSession({ roomId, userName, role, avatar, isHost, onIdUn
   const [reactions, setReactions] = useState([]);
   const [history, setHistory] = useState([]);
 
-  // Helper untuk menambah dan membersihkan floating reaction
+  // Helper untuk menambah dan membersihkan floating reaction + memainkan efek suara lucu
   const triggerReaction = useCallback((reactionItem) => {
     setReactions((previous) => [...previous, reactionItem]);
+    soundFx.playEmojiSound(reactionItem.emoji);
     setTimeout(() => {
       setReactions((previous) => previous.filter((r) => r.id !== reactionItem.id));
     }, 2500);
