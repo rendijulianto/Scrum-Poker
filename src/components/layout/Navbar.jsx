@@ -71,3 +71,4 @@ export function Navbar({ roomId, participantCount, onLeaveRoom }) {
     </header>
   );
 }
+

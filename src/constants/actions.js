@@ -21,3 +21,4 @@ export const ROLES = {
   VOTER: 'VOTER',
   SPECTATOR: 'SPECTATOR',
 };
+

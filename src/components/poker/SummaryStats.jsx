@@ -75,3 +75,4 @@ export function SummaryStats({ participants }) {
     </div>
   );
 }
+

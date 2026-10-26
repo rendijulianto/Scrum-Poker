@@ -6,7 +6,7 @@ import { PEER_ACTIONS, ROLES } from '../constants/actions';
  * Hook utama untuk mengelola sesi Scrum Poker via WebRTC (PeerJS).
  * Sepenuhnya mengisolasi logika jaringan dan sinkronisasi dari komponen UI.
  */
-export function usePokerSession({ roomId, userName, role, isHost }) {
+export function usePokerSession({ roomId, userName, role, isHost, onIdUnavailable }) {
   // State room yang tersinkronisasi
   const [topic, setTopic] = useState('');
   const [participants, setParticipants] = useState([]);
@@ -16,6 +16,7 @@ export function usePokerSession({ roomId, userName, role, isHost }) {
   // Status koneksi
   const [isConnecting, setIsConnecting] = useState(true);
   const [connectionError, setConnectionError] = useState(null);
+  const [errorType, setErrorType] = useState(null);
 
   // Referensi internal untuk koneksi
   const peerInstanceRef = useRef(null);
@@ -212,8 +213,13 @@ export function usePokerSession({ roomId, userName, role, isHost }) {
       if (isCancelled) return;
       console.error('PeerJS Global Error:', err);
       setIsConnecting(false);
+      setErrorType(err.type);
       if (err.type === 'unavailable-id') {
-        setConnectionError('Room ID ini sudah digunakan oleh Host lain. Silakan gunakan ID lain.');
+        const errorMsg = `Room ID "${roomId}" sudah digunakan oleh Host lain yang sedang aktif. Silakan pilih ID yang berbeda.`;
+        setConnectionError(errorMsg);
+        if (onIdUnavailable) {
+          onIdUnavailable(roomId, errorMsg);
+        }
       } else if (err.type === 'peer-unavailable') {
         setConnectionError('Room tidak ditemukan atau Host sedang offline.');
       } else {
@@ -299,9 +305,11 @@ export function usePokerSession({ roomId, userName, role, isHost }) {
     myVote,
     isConnecting,
     connectionError,
+    errorType,
     submitVote,
     updateTopic,
     revealCards,
     resetRound,
   };
 }
+

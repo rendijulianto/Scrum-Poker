@@ -24,3 +24,4 @@ export function ConsensusCelebration({ isRevealed, participants }) {
 
   return null;
 }
+

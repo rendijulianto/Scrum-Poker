@@ -78,3 +78,4 @@ export function CardItem({ participant, isRevealed }) {
     </div>
   );
 }
+

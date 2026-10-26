@@ -1,13 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { Cards, Plus, SignIn, User, Eye, Sparkle } from '@phosphor-icons/react';
+import { Cards, Plus, SignIn, User, Eye, Sparkle, ArrowsClockwise, Hash } from '@phosphor-icons/react';
 import { ROLES } from '../../constants/actions';
 
-export function LobbyView({ onEnterRoom, initialRoomId }) {
+function generateRandomRoomId() {
+  const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+  return `poker-${randomSuffix}`;
+}
+
+export function LobbyView({ onEnterRoom, initialRoomId, initialError = '' }) {
   const [activeTab, setActiveTab] = useState(initialRoomId ? 'join' : 'create');
   const [userName, setUserName] = useState(() => localStorage.getItem('poker_username') || '');
+  const [customRoomId, setCustomRoomId] = useState('');
   const [joinRoomId, setJoinRoomId] = useState(initialRoomId || '');
   const [selectedRole, setSelectedRole] = useState(ROLES.VOTER);
-  const [validationError, setValidationError] = useState('');
+  const [validationError, setValidationError] = useState(initialError);
+
+  useEffect(() => {
+    if (initialError) {
+      setValidationError(initialError);
+      setActiveTab('create');
+    }
+  }, [initialError]);
 
   useEffect(() => {
     if (initialRoomId) {
@@ -15,6 +28,12 @@ export function LobbyView({ onEnterRoom, initialRoomId }) {
       setActiveTab('join');
     }
   }, [initialRoomId]);
+
+  const handleRandomizeId = () => {
+    const randomId = generateRandomRoomId();
+    setCustomRoomId(randomId);
+    if (validationError) setValidationError('');
+  };
 
   const handleCreateSubmit = (e) => {
     e.preventDefault();
@@ -24,13 +43,28 @@ export function LobbyView({ onEnterRoom, initialRoomId }) {
       return;
     }
 
-    // Buat Room ID acak unik yang mudah dibaca (misal: sprint-7392)
-    const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-    const newRoomId = `poker-${randomSuffix}`;
+    let finalRoomId = customRoomId.trim().toLowerCase();
+
+    // Jika custom ID diisi, validasi formatnya
+    if (finalRoomId) {
+      // Hanya izinkan huruf, angka, dan tanda hubung (-)
+      const isValidFormat = /^[a-z0-9-]+$/.test(finalRoomId);
+      if (!isValidFormat) {
+        setValidationError('ID Room hanya boleh berupa huruf kecil, angka, dan tanda strip (-). Tanpa spasi atau simbol.');
+        return;
+      }
+      if (finalRoomId.length < 3 || finalRoomId.length > 30) {
+        setValidationError('Panjang ID Room harus antara 3 hingga 30 karakter.');
+        return;
+      }
+    } else {
+      // Jika kosong, buatkan ID acak otomatis
+      finalRoomId = generateRandomRoomId();
+    }
 
     localStorage.setItem('poker_username', cleanName);
     onEnterRoom({
-      roomId: newRoomId,
+      roomId: finalRoomId,
       userName: cleanName,
       role: selectedRole,
       isHost: true,
@@ -113,7 +147,7 @@ export function LobbyView({ onEnterRoom, initialRoomId }) {
 
         {/* Error Guard */}
         {validationError && (
-          <div className="mb-4 p-3 rounded-lg bg-red-950/40 border border-red-800/50 text-red-300 text-xs">
+          <div className="mb-4 p-3 rounded-lg bg-red-950/40 border border-red-800/50 text-red-300 text-xs leading-relaxed">
             {validationError}
           </div>
         )}
@@ -121,6 +155,7 @@ export function LobbyView({ onEnterRoom, initialRoomId }) {
         {/* Forms */}
         {activeTab === 'create' ? (
           <form onSubmit={handleCreateSubmit} className="space-y-4">
+            {/* Nama Host */}
             <div>
               <label htmlFor="create-name" className="block text-xs font-medium text-zinc-300 mb-1.5">
                 Nama Anda
@@ -141,6 +176,41 @@ export function LobbyView({ onEnterRoom, initialRoomId }) {
                 />
                 <User size={16} className="absolute right-3.5 top-3 text-zinc-500" />
               </div>
+            </div>
+
+            {/* Custom Room ID */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label htmlFor="custom-room" className="block text-xs font-medium text-zinc-300">
+                  ID Room Kustom <span className="text-zinc-500 font-normal">(Opsional)</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={handleRandomizeId}
+                  className="flex items-center gap-1 text-[11px] text-indigo-400 hover:text-indigo-300 transition-colors"
+                >
+                  <ArrowsClockwise size={12} />
+                  <span>Acak ID</span>
+                </button>
+              </div>
+              <div className="relative">
+                <input
+                  id="custom-room"
+                  type="text"
+                  placeholder="Contoh: sprint-be-12 (atau acak otomatis)"
+                  value={customRoomId}
+                  onChange={(e) => {
+                    setCustomRoomId(e.target.value.toLowerCase().replace(/\s+/g, '-'));
+                    if (validationError) setValidationError('');
+                  }}
+                  className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3.5 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors font-mono"
+                  maxLength={30}
+                />
+                <Hash size={16} className="absolute right-3.5 top-3 text-zinc-500" />
+              </div>
+              <p className="mt-1 text-[11px] text-zinc-500">
+                Gunakan ID yang unik untuk tim Anda. Jika ID sudah dipakai, sistem akan menolak.
+              </p>
             </div>
 
             {/* Role Options */}
@@ -192,7 +262,7 @@ export function LobbyView({ onEnterRoom, initialRoomId }) {
               <input
                 id="join-room"
                 type="text"
-                placeholder="Contoh: poker-1234"
+                placeholder="Contoh: sprint-be-12"
                 value={joinRoomId}
                 onChange={(e) => {
                   setJoinRoomId(e.target.value);

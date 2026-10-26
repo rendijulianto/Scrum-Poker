@@ -12,6 +12,7 @@ import { CircleNotch, WarningCircle } from '@phosphor-icons/react';
 export default function App() {
   const [sessionConfig, setSessionConfig] = useState(null);
   const [initialRoomId, setInitialRoomId] = useState('');
+  const [lobbyError, setLobbyError] = useState('');
 
   // Periksa apakah pengguna membuka tautan dengan parameter ?room=...
   useEffect(() => {
@@ -23,6 +24,7 @@ export default function App() {
   }, []);
 
   const handleEnterRoom = (config) => {
+    setLobbyError('');
     setSessionConfig(config);
     // Perbarui URL tanpa reload halaman
     const newUrl = `${window.location.pathname}?room=${config.roomId}`;
@@ -31,23 +33,39 @@ export default function App() {
 
   const handleLeaveRoom = () => {
     setSessionConfig(null);
+    setLobbyError('');
+    const cleanUrl = window.location.pathname;
+    window.history.pushState({ path: cleanUrl }, '', cleanUrl);
+  };
+
+  const handleIdUnavailable = (takenRoomId, errorMsg) => {
+    // Kembalikan Host ke Lobby secara otomatis jika Room ID sudah dipakai
+    setSessionConfig(null);
+    setLobbyError(errorMsg);
     const cleanUrl = window.location.pathname;
     window.history.pushState({ path: cleanUrl }, '', cleanUrl);
   };
 
   if (!sessionConfig) {
-    return <LobbyView onEnterRoom={handleEnterRoom} initialRoomId={initialRoomId} />;
+    return (
+      <LobbyView
+        onEnterRoom={handleEnterRoom}
+        initialRoomId={initialRoomId}
+        initialError={lobbyError}
+      />
+    );
   }
 
   return (
     <RoomScreen
       config={sessionConfig}
       onLeaveRoom={handleLeaveRoom}
+      onIdUnavailable={handleIdUnavailable}
     />
   );
 }
 
-function RoomScreen({ config, onLeaveRoom }) {
+function RoomScreen({ config, onLeaveRoom, onIdUnavailable }) {
   const {
     topic,
     participants,
@@ -59,9 +77,12 @@ function RoomScreen({ config, onLeaveRoom }) {
     updateTopic,
     revealCards,
     resetRound,
-  } = usePokerSession(config);
+  } = usePokerSession({
+    ...config,
+    onIdUnavailable,
+  });
 
-  // Early Return: Kondisi Error Koneksi
+  // Early Return: Kondisi Error Koneksi Umum
   if (connectionError) {
     return (
       <div className="min-h-[100dvh] flex flex-col items-center justify-center p-4">
@@ -72,13 +93,13 @@ function RoomScreen({ config, onLeaveRoom }) {
           <h2 className="text-lg font-semibold text-zinc-100 mb-1">
             Gangguan Koneksi Room
           </h2>
-          <p className="text-sm text-zinc-400 mb-5">
+          <p className="text-sm text-zinc-400 mb-5 leading-relaxed">
             {connectionError}
           </p>
           <button
             type="button"
             onClick={onLeaveRoom}
-            className="w-full py-2.5 px-4 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-sm font-medium transition-colors"
+            className="w-full py-2.5 px-4 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-sm font-medium transition-colors active:scale-[0.98]"
           >
             Kembali ke Beranda
           </button>

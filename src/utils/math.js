@@ -48,3 +48,4 @@ export function checkConsensus(participants) {
   const firstVote = votersWithVotes[0];
   return votersWithVotes.every((v) => v === firstVote);
 }
+

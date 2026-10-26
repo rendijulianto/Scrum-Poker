@@ -46,3 +46,4 @@ export function ParticipantTable({ participants, isRevealed, roomId }) {
     </div>
   );
 }
+
