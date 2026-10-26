@@ -13,6 +13,15 @@ export function usePokerSession({ roomId, userName, role, avatar, isHost, onIdUn
   const [isRevealed, setIsRevealed] = useState(false);
   const [myVote, setMyVote] = useState(null);
   const [timerEndTime, setTimerEndTime] = useState(null);
+  const [reactions, setReactions] = useState([]);
+
+  // Helper untuk menambah dan membersihkan floating reaction
+  const triggerReaction = useCallback((reactionItem) => {
+    setReactions((previous) => [...previous, reactionItem]);
+    setTimeout(() => {
+      setReactions((previous) => previous.filter((r) => r.id !== reactionItem.id));
+    }, 2500);
+  }, []);
 
   // Status koneksi
   const [isConnecting, setIsConnecting] = useState(true);
@@ -138,6 +147,8 @@ export function usePokerSession({ roomId, userName, role, avatar, isHost, onIdUn
                   setMyVote(null);
                 }
               }
+            } else if (data.type === PEER_ACTIONS.SEND_REACTION) {
+              triggerReaction(data.payload);
             }
           } catch (err) {
             console.error('Gagal memproses data dari host:', err);
@@ -195,6 +206,21 @@ export function usePokerSession({ roomId, userName, role, avatar, isHost, onIdUn
                 );
                 broadcastStateToAll({ participants: updatedList });
                 return updatedList;
+              });
+            } else if (data.type === PEER_ACTIONS.SEND_REACTION) {
+              const reactionItem = data.payload;
+              triggerReaction(reactionItem);
+              // Broadcast ke semua peer lain
+              const msg = JSON.stringify({
+                type: PEER_ACTIONS.SEND_REACTION,
+                payload: reactionItem,
+              });
+              activeConnectionsRef.current.forEach((conn) => {
+                if (conn.open && conn.peer !== peerId) {
+                  try {
+                    conn.send(msg);
+                  } catch (_) {}
+                }
               });
             }
           } catch (err) {
@@ -310,6 +336,37 @@ export function usePokerSession({ roomId, userName, role, avatar, isHost, onIdUn
     broadcastStateToAll({ timerEndTime: null });
   }, [isHost, broadcastStateToAll]);
 
+  // Aksi Mengirim Live Emoji Reaction (Semua Anggota)
+  const sendReaction = useCallback((emoji) => {
+    const reactionItem = {
+      id: `${Date.now()}-${Math.random()}`,
+      emoji,
+      senderName: userName,
+      xOffset: Math.floor(15 + Math.random() * 70), // offset 15% - 85%
+    };
+
+    triggerReaction(reactionItem);
+
+    if (isHost) {
+      const msg = JSON.stringify({
+        type: PEER_ACTIONS.SEND_REACTION,
+        payload: reactionItem,
+      });
+      activeConnectionsRef.current.forEach((conn) => {
+        if (conn.open) {
+          try { conn.send(msg); } catch (_) {}
+        }
+      });
+    } else if (hostConnectionRef.current && hostConnectionRef.current.open) {
+      hostConnectionRef.current.send(
+        JSON.stringify({
+          type: PEER_ACTIONS.SEND_REACTION,
+          payload: reactionItem,
+        })
+      );
+    }
+  }, [userName, isHost, triggerReaction]);
+
   // Aksi Host: Reset putaran (New Round)
   const resetRound = useCallback(() => {
     if (!isHost) return;
@@ -329,6 +386,7 @@ export function usePokerSession({ roomId, userName, role, avatar, isHost, onIdUn
     isRevealed,
     myVote,
     timerEndTime,
+    reactions,
     isConnecting,
     connectionError,
     errorType,
@@ -338,6 +396,7 @@ export function usePokerSession({ roomId, userName, role, avatar, isHost, onIdUn
     resetRound,
     startTimer,
     stopTimer,
+    sendReaction,
   };
 }
 

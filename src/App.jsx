@@ -6,6 +6,7 @@ import { ParticipantTable } from './components/poker/ParticipantTable';
 import { VotingDeck } from './components/poker/VotingDeck';
 import { SummaryStats } from './components/poker/SummaryStats';
 import { DebateSpotlight } from './components/poker/DebateSpotlight';
+import { LiveReactions } from './components/poker/LiveReactions';
 import { ConsensusCelebration } from './components/poker/ConsensusCelebration';
 import { usePokerSession } from './hooks/usePokerSession';
 import { CircleNotch, WarningCircle } from '@phosphor-icons/react';
@@ -73,6 +74,7 @@ function RoomScreen({ config, onLeaveRoom, onIdUnavailable }) {
     isRevealed,
     myVote,
     timerEndTime,
+    reactions,
     isConnecting,
     connectionError,
     submitVote,
@@ -81,6 +83,7 @@ function RoomScreen({ config, onLeaveRoom, onIdUnavailable }) {
     resetRound,
     startTimer,
     stopTimer,
+    sendReaction,
   } = usePokerSession({
     ...config,
     onIdUnavailable,
@@ -175,6 +178,12 @@ function RoomScreen({ config, onLeaveRoom, onIdUnavailable }) {
           isSpectator={config.role === 'SPECTATOR'}
         />
       </main>
+
+      {/* Live Floating Reactions */}
+      <LiveReactions
+        reactions={reactions}
+        onSendReaction={sendReaction}
+      />
 
       {/* Efek Selebrasi Konsensus */}
       <ConsensusCelebration

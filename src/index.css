@@ -30,3 +30,21 @@
   transform: rotateY(180deg);
 }
 
+/* Floating Emoji Reactions */
+@keyframes floatUp {
+  0% {
+    transform: translateY(0) scale(0.6);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+    transform: translateY(-30px) scale(1.1);
+  }
+  75% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(-340px) scale(1.3);
+    opacity: 0;
+  }
+}
