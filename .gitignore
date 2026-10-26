@@ -1,3 +1,12 @@
+# Dependencies
+node_modules/
+.pnp/
+.pnp.js
+
+# Production & Build Outputs
+dist/
+dist-ssr/
+
 # Logs
 logs
 *.log
@@ -7,19 +16,31 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
+# Environment Variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 *.local
 
-# Editor directories and files
+# Editor & Operating System
 .vscode/*
 !.vscode/extensions.json
-.idea
+.idea/
 .DS_Store
+Thumbs.db
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
 
+# Workspace Rules & AI Directives
+GEMINI.md
+AGENTS.md
+clean-code.md
+design.md
+.agents/
+.agent/
+.gemini/

@@ -164,3 +164,4 @@ Proyek ini telah dikonfigurasi dengan berkas `vercel.json` sehingga dapat langsu
 
 ## 📜 Lisensi
 Dilisensikan di bawah lisensi MIT. Bebas digunakan dan dimodifikasi untuk kebutuhan sprint planning tim Anda.
+
