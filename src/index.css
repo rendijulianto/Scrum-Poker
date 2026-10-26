@@ -10,6 +10,14 @@
     color: #f4f4f5; /* zinc-100 */
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   }
+
+  button, [role="button"], a, input[type="submit"], input[type="button"], label[for], select {
+    cursor: pointer;
+  }
+
+  button:disabled, [role="button"][aria-disabled="true"], input:disabled {
+    cursor: not-allowed;
+  }
 }
 
 /* Card 3D Flip Effects */

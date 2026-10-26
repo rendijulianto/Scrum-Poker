@@ -41,8 +41,8 @@ export function VotingDeck({ selectedVote, onSelectVote, disabled, isSpectator }
                 disabled
                   ? 'opacity-40 cursor-not-allowed bg-zinc-900 border border-zinc-800 text-zinc-500'
                   : isSelected
-                  ? 'bg-indigo-600 text-white border-2 border-indigo-400 -translate-y-2 shadow-lg shadow-indigo-600/30'
-                  : 'bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-800 hover:border-zinc-700 hover:-translate-y-1'
+                  ? 'cursor-pointer bg-indigo-600 text-white border-2 border-indigo-400 -translate-y-2 shadow-lg shadow-indigo-600/30'
+                  : 'cursor-pointer bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-800 hover:border-zinc-700 hover:-translate-y-1'
               }`}
             >
               {card}
