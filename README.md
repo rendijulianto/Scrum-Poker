@@ -19,9 +19,10 @@ Aplikasi ini siap di-deploy langsung ke **Vercel** dengan arsitektur Static Sing
 * **Tautan Satu-Klik**: Tombol salin link instan (`/?room=KODE_ROOM`) untuk dibagikan di Slack, WhatsApp, atau Microsoft Teams.
 * **Anti-Keluar saat Refresh**: Sesi aktif tersimpan di `sessionStorage`, sehingga me-refresh halaman tidak akan membuat pemain terlempar keluar dari room.
 
-### 3. Galeri Karakter Wajah Tim (7 Avatar)
-* Tim dapat memilih foto wajah karakter kocak saat masuk ke ruangan.
-* Foto wajah terpampang di meja poker dengan cincin status interaktif:
+### 3. Kustomisasi Avatar (Upload Foto Base64 & 8 Karakter Siap Pakai)
+* **Upload Foto Sendiri (Auto Base64)**: Pemain dapat mengunggah foto bebas dari galeri/kamera laptop atau HP. Foto otomatis di-crop persegi dan dikompresi ke format Base64 ringan (~10KB) sehingga aman dan instan dikirim via WebRTC tanpa server penyimpanan gambar.
+* **Pilihan 8 Karakter Keren**: Tersedia pilihan karakter vector SVG ringan: Developer, Cyber Hacker, Cute Robot, Code Ninja, Astronaut, Tech Wizard, Pro Gamer, dan Bug Detective.
+* Foto avatar terpampang di meja poker dengan cincin status interaktif:
   * Status *"Pikir..."* saat voter masih mempertimbangkan poin.
   * Cincin bercahaya dengan centang hijau *"Siap"* saat kartu sudah dipilih.
   * Kartu 3D berputar halus (*flip animation*) saat Host membuka kartu.
