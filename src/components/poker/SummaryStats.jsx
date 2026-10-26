@@ -1,11 +1,12 @@
 import React, { useMemo } from 'react';
-import { calculateAverage, calculateDistribution, checkConsensus } from '../../utils/math';
+import { calculateAverage, calculateDistribution, checkConsensus, getMajorityVote } from '../../utils/math';
 import { ChartBar, Sparkle } from '@phosphor-icons/react';
 
 export function SummaryStats({ participants }) {
   const average = useMemo(() => calculateAverage(participants), [participants]);
   const distribution = useMemo(() => calculateDistribution(participants), [participants]);
   const isConsensus = useMemo(() => checkConsensus(participants), [participants]);
+  const majority = useMemo(() => getMajorityVote(participants), [participants]);
 
   return (
     <div className="w-full bg-zinc-900/80 border border-zinc-800 rounded-xl p-4 sm:p-5 mt-4">
@@ -49,9 +50,28 @@ export function SummaryStats({ participants }) {
           <span className="text-[11px] font-mono text-zinc-500 uppercase block">
             Nilai Terbanyak
           </span>
-          <span className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-200 mt-1 block">
-            {distribution.length > 0 ? `${distribution[0].value} (${distribution[0].count} suara)` : 'N/A'}
-          </span>
+          <div className="mt-1">
+            {majority ? (
+              majority.isTie ? (
+                <div>
+                  <span className="text-sm sm:text-base font-semibold text-amber-300 font-mono block">
+                    Imbang: {majority.value}
+                  </span>
+                  <span className="text-[10px] text-zinc-500 block">
+                    Masing-masing {majority.count} suara
+                  </span>
+                </div>
+              ) : (
+                <span className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-200 block">
+                  {majority.value} ({majority.count} suara)
+                </span>
+              )
+            ) : (
+              <span className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-500 block">
+                N/A
+              </span>
+            )}
+          </div>
         </div>
       </div>
 

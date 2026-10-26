@@ -59,6 +59,8 @@ export function CardItem({ participant, isRevealed }) {
             {/* Front of Card (Tertutup / Backface sebelum Reveal) */}
             <div
               className={`absolute inset-0 w-full h-full rounded-xl backface-hidden flex flex-col items-center justify-center transition-all ${
+                isRevealed && hasVoted ? 'opacity-0 pointer-events-none' : ''
+              } ${
                 hasVoted
                   ? 'bg-zinc-900 border-2 border-indigo-500/60 shadow-lg shadow-indigo-950/20 text-indigo-400'
                   : 'bg-zinc-950/60 border border-dashed border-zinc-800 text-zinc-600'
@@ -83,16 +85,13 @@ export function CardItem({ participant, isRevealed }) {
               )}
             </div>
 
-            {/* Back of Card (Terbuka / Frontface setelah Reveal) */}
-            <div className="absolute inset-0 w-full h-full rounded-xl backface-hidden rotate-y-180 bg-zinc-900 border border-indigo-500/40 flex flex-col items-center justify-between p-2 shadow-lg">
-              <span className="text-[10px] font-mono text-indigo-400 self-start">
+            {/* Back of Card (Terbuka / Nilai Tunggal setelah Reveal) */}
+            <div className="absolute inset-0 w-full h-full rounded-xl backface-hidden rotate-y-180 bg-zinc-900 border-2 border-indigo-500/50 flex flex-col items-center justify-center p-2 shadow-lg">
+              <span className="text-2xl sm:text-3xl font-bold font-mono tracking-tight text-indigo-400">
                 {participant.vote}
               </span>
-              <span className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-100">
-                {participant.vote}
-              </span>
-              <span className="text-[10px] font-mono text-indigo-400 self-end">
-                {participant.vote}
+              <span className="text-[9px] font-mono uppercase text-zinc-500 tracking-wider mt-0.5">
+                Poin
               </span>
             </div>
           </div>

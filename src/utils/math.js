@@ -35,6 +35,43 @@ export function calculateDistribution(participants) {
 }
 
 /**
+ * Mencari nilai terbanyak (Modus).
+ * Jika ada nilai yang seri/imbang (misal: 1 suara untuk 8 dan 1 suara untuk 13):
+ * maka tidak ada pemenang tunggal, statusnya 'Imbang'.
+ */
+export function getMajorityVote(participants) {
+  const distribution = calculateDistribution(participants);
+  if (distribution.length === 0) return null;
+  if (distribution.length === 1) {
+    return {
+      value: distribution[0].value,
+      count: distribution[0].count,
+      isTie: false,
+    };
+  }
+
+  const topCount = distribution[0].count;
+  const secondCount = distribution[1].count;
+
+  // Jika posisi pertama dan kedua memiliki jumlah suara yang sama: IMBANG!
+  if (topCount === secondCount) {
+    const tiedItems = distribution.filter((d) => d.count === topCount);
+    const tiedValues = tiedItems.map((d) => d.value).join(' & ');
+    return {
+      value: tiedValues,
+      count: topCount,
+      isTie: true,
+    };
+  }
+
+  return {
+    value: distribution[0].value,
+    count: topCount,
+    isTie: false,
+  };
+}
+
+/**
  * Mengecek apakah tercapai konsensus suara bulat (semua voter memilih kartu yang persis sama).
  */
 export function checkConsensus(participants) {
