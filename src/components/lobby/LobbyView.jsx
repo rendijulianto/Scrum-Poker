@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Cards, Plus, SignIn, User, Eye, Sparkle, ArrowsClockwise, Hash } from '@phosphor-icons/react';
 import { ROLES } from '../../constants/actions';
-import { TEAM_AVATARS } from '../../constants/avatars';
+import { PRESET_AVATARS } from '../../constants/avatars';
 import { AvatarPicker } from './AvatarPicker';
 
 function generateRandomRoomId() {
@@ -12,7 +12,7 @@ function generateRandomRoomId() {
 export function LobbyView({ onEnterRoom, initialRoomId, initialError = '' }) {
   const [activeTab, setActiveTab] = useState(initialRoomId ? 'join' : 'create');
   const [userName, setUserName] = useState(() => localStorage.getItem('poker_username') || '');
-  const [selectedAvatar, setSelectedAvatar] = useState(() => localStorage.getItem('poker_avatar') || TEAM_AVATARS[0].src);
+  const [selectedAvatar, setSelectedAvatar] = useState(() => localStorage.getItem('poker_avatar') || PRESET_AVATARS[0].src);
   const [customRoomId, setCustomRoomId] = useState('');
   const [joinRoomId, setJoinRoomId] = useState(initialRoomId || '');
   const [selectedRole, setSelectedRole] = useState(ROLES.VOTER);
