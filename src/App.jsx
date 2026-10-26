@@ -13,11 +13,31 @@ import { usePokerSession } from './hooks/usePokerSession';
 import { CircleNotch, WarningCircle } from '@phosphor-icons/react';
 
 export default function App() {
-  const [sessionConfig, setSessionConfig] = useState(null);
-  const [initialRoomId, setInitialRoomId] = useState('');
+  const [sessionConfig, setSessionConfig] = useState(() => {
+    // Pulihkan sesi aktif dari sessionStorage saat halaman di-refresh
+    try {
+      const saved = sessionStorage.getItem('poker_active_session');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        const params = new URLSearchParams(window.location.search);
+        const urlRoom = params.get('room');
+        // Jika URL tidak memiliki parameter room, atau cocok dengan sesi yang tersimpan
+        if (!urlRoom || urlRoom.toLowerCase() === parsed.roomId.toLowerCase()) {
+          return parsed;
+        }
+      }
+    } catch (_) {}
+    return null;
+  });
+
+  const [initialRoomId, setInitialRoomId] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('room') || '';
+  });
+
   const [lobbyError, setLobbyError] = useState('');
 
-  // Periksa apakah pengguna membuka tautan dengan parameter ?room=...
+  // Periksa apakah pengguna membuka tautan dengan parameter ?room=... baru
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const roomParam = params.get('room');
@@ -29,6 +49,9 @@ export default function App() {
   const handleEnterRoom = (config) => {
     setLobbyError('');
     setSessionConfig(config);
+    try {
+      sessionStorage.setItem('poker_active_session', JSON.stringify(config));
+    } catch (_) {}
     // Perbarui URL tanpa reload halaman
     const newUrl = `${window.location.pathname}?room=${config.roomId}`;
     window.history.pushState({ path: newUrl }, '', newUrl);
@@ -37,6 +60,9 @@ export default function App() {
   const handleLeaveRoom = () => {
     setSessionConfig(null);
     setLobbyError('');
+    try {
+      sessionStorage.removeItem('poker_active_session');
+    } catch (_) {}
     const cleanUrl = window.location.pathname;
     window.history.pushState({ path: cleanUrl }, '', cleanUrl);
   };
@@ -45,6 +71,9 @@ export default function App() {
     // Kembalikan Host ke Lobby secara otomatis jika Room ID sudah dipakai
     setSessionConfig(null);
     setLobbyError(errorMsg);
+    try {
+      sessionStorage.removeItem('poker_active_session');
+    } catch (_) {}
     const cleanUrl = window.location.pathname;
     window.history.pushState({ path: cleanUrl }, '', cleanUrl);
   };

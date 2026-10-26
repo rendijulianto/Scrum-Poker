@@ -40,3 +40,4 @@ export function downloadHistoryAsCsv(history) {
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
 }
+

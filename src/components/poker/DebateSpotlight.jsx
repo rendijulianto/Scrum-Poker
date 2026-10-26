@@ -164,3 +164,4 @@ export function DebateSpotlight({ participants, isRevealed }) {
     </div>
   );
 }
+

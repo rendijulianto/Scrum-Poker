@@ -152,3 +152,4 @@ export function SprintHistoryModal({ isOpen, onClose, history, isHost, onClearHi
     </div>
   );
 }
+

@@ -102,3 +102,4 @@ export function SessionTimer({ timerEndTime, isHost, onStartTimer, onStopTimer }
     </div>
   );
 }
+

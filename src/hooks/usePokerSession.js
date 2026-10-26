@@ -34,6 +34,7 @@ export function usePokerSession({ roomId, userName, role, avatar, isHost, onIdUn
   const peerInstanceRef = useRef(null);
   const activeConnectionsRef = useRef(new Map()); // Khusus Host: Map<peerId, DataConnection>
   const hostConnectionRef = useRef(null); // Khusus Member: DataConnection ke Host
+  const hasRetriedHostRef = useRef(false);
 
   // Helper untuk broadcast state dari Host ke seluruh peer
   const broadcastStateToAll = useCallback((stateOverride = {}) => {
@@ -254,9 +255,58 @@ export function usePokerSession({ roomId, userName, role, avatar, isHost, onIdUn
       });
     }
 
+    // Pastikan koneksi ditutup seketika saat refresh untuk menghindari socket menggantung
+    const handleBeforeUnload = () => {
+      try {
+        peer.destroy();
+      } catch (_) {}
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
     peer.on('error', (err) => {
       if (isCancelled) return;
       console.error('PeerJS Global Error:', err);
+
+      // Jika Host baru saja me-refresh, broker mungkin butuh 500ms untuk melepaskan ID lama
+      if (err.type === 'unavailable-id' && isHost && !hasRetriedHostRef.current) {
+        hasRetriedHostRef.current = true;
+        console.log('Menunggu broker melepaskan ID lama setelah refresh...');
+        setTimeout(() => {
+          if (!isCancelled) {
+            // Coba inisialisasi sekali lagi
+            const retryPeer = new Peer(roomId, { debug: 1 });
+            peerInstanceRef.current = retryPeer;
+            // Setup listener untuk retryPeer
+            retryPeer.on('open', (id) => {
+              if (isCancelled) return;
+              setIsConnecting(false);
+              setConnectionError(null);
+              setParticipants([
+                {
+                  id,
+                  name: userName,
+                  role: role || ROLES.HOST,
+                  avatar: avatar || null,
+                  vote: null,
+                  isHost: true,
+                },
+              ]);
+            });
+            retryPeer.on('error', (retryErr) => {
+              if (isCancelled) return;
+              setIsConnecting(false);
+              setErrorType(retryErr.type);
+              const errorMsg = `Room ID "${roomId}" sudah digunakan oleh Host lain yang sedang aktif. Silakan pilih ID yang berbeda.`;
+              setConnectionError(errorMsg);
+              if (onIdUnavailable) {
+                onIdUnavailable(roomId, errorMsg);
+              }
+            });
+          }
+        }, 600);
+        return;
+      }
+
       setIsConnecting(false);
       setErrorType(err.type);
       if (err.type === 'unavailable-id') {
@@ -275,6 +325,7 @@ export function usePokerSession({ roomId, userName, role, avatar, isHost, onIdUn
     // Cleanup wajib untuk mencegah kebocoran memori
     return () => {
       isCancelled = true;
+      window.removeEventListener('beforeunload', handleBeforeUnload);
       activeConnectionsRef.current.forEach((conn) => {
         try {
           conn.close();

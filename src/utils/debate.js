@@ -37,3 +37,4 @@ export function getDebateSpotlight(participants) {
     firstSpeakerId: isMinFirst ? minSpeaker.id : maxSpeaker.id,
   };
 }
+
