@@ -6,7 +6,7 @@ import { PEER_ACTIONS, ROLES } from '../constants/actions';
  * Hook utama untuk mengelola sesi Scrum Poker via WebRTC (PeerJS).
  * Sepenuhnya mengisolasi logika jaringan dan sinkronisasi dari komponen UI.
  */
-export function usePokerSession({ roomId, userName, role, isHost, onIdUnavailable }) {
+export function usePokerSession({ roomId, userName, role, avatar, isHost, onIdUnavailable }) {
   // State room yang tersinkronisasi
   const [topic, setTopic] = useState('');
   const [participants, setParticipants] = useState([]);
@@ -83,6 +83,7 @@ export function usePokerSession({ roomId, userName, role, isHost, onIdUnavailabl
             id,
             name: userName,
             role: role || ROLES.HOST,
+            avatar: avatar || null,
             vote: null,
             isHost: true,
           },
@@ -91,7 +92,7 @@ export function usePokerSession({ roomId, userName, role, isHost, onIdUnavailabl
         // Member: Sambungkan ke Host
         const conn = peer.connect(roomId, {
           reliable: true,
-          metadata: { name: userName, role },
+          metadata: { name: userName, role, avatar },
         });
 
         hostConnectionRef.current = conn;
@@ -107,6 +108,7 @@ export function usePokerSession({ roomId, userName, role, isHost, onIdUnavailabl
                 id,
                 name: userName,
                 role: role || ROLES.VOTER,
+                avatar: avatar || null,
               },
             })
           );
@@ -247,7 +249,7 @@ export function usePokerSession({ roomId, userName, role, isHost, onIdUnavailabl
         peer.destroy();
       } catch (_) {}
     };
-  }, [roomId, userName, role, isHost, broadcastStateToAll]);
+  }, [roomId, userName, role, avatar, isHost, onIdUnavailable, broadcastStateToAll]);
 
   // Aksi memilih kartu (Voter)
   const submitVote = useCallback((cardValue) => {

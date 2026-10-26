@@ -1,18 +1,53 @@
 import React from 'react';
-import { Cards, Check, Eye } from '@phosphor-icons/react';
+import { Cards, Check, Eye, User } from '@phosphor-icons/react';
 
 export function CardItem({ participant, isRevealed }) {
   const isSpectator = participant.role === 'SPECTATOR';
   const hasVoted = participant.vote !== null && participant.vote !== undefined;
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center group">
+      {/* Team Member Avatar Photo */}
+      <div className="relative mb-2">
+        <div
+          className={`w-11 h-11 sm:w-13 sm:h-13 rounded-full overflow-hidden transition-all duration-300 ${
+            hasVoted
+              ? 'ring-2 ring-indigo-500 ring-offset-2 ring-offset-zinc-950 scale-105'
+              : 'border border-zinc-700/80 opacity-85'
+          }`}
+        >
+          {participant.avatar ? (
+            <img
+              src={participant.avatar}
+              alt={participant.name}
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+          ) : (
+            <div className="w-full h-full bg-zinc-800 flex items-center justify-center text-zinc-300 font-bold text-sm">
+              {participant.name ? participant.name.charAt(0).toUpperCase() : <User size={18} />}
+            </div>
+          )}
+        </div>
+
+        {/* Micro Status Badge on Avatar */}
+        {isSpectator ? (
+          <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-zinc-800 border border-zinc-950 flex items-center justify-center text-zinc-400">
+            <Eye size={10} />
+          </div>
+        ) : hasVoted ? (
+          <div className="absolute -bottom-1 -right-1 w-4.5 h-4.5 rounded-full bg-indigo-600 border border-zinc-950 flex items-center justify-center text-white shadow-sm">
+            <Check size={11} weight="bold" />
+          </div>
+        ) : null}
+      </div>
+
       {/* 3D Card Area */}
-      <div className="w-16 h-24 sm:w-20 sm:h-28 perspective-1000 mb-2">
+      <div className="w-16 h-22 sm:w-18 sm:h-26 perspective-1000 mb-2">
         {isSpectator ? (
           // Spectator Card Representation
           <div className="w-full h-full rounded-xl border border-dashed border-zinc-800 bg-zinc-950/40 flex flex-col items-center justify-center text-zinc-500">
-            <Eye size={20} className="mb-1 text-zinc-600" />
+            <Eye size={18} className="mb-1 text-zinc-600" />
             <span className="text-[10px] uppercase font-mono">Nonton</span>
           </div>
         ) : (
@@ -78,4 +113,3 @@ export function CardItem({ participant, isRevealed }) {
     </div>
   );
 }
-

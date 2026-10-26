@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Cards, Plus, SignIn, User, Eye, Sparkle, ArrowsClockwise, Hash } from '@phosphor-icons/react';
 import { ROLES } from '../../constants/actions';
+import { TEAM_AVATARS } from '../../constants/avatars';
+import { AvatarPicker } from './AvatarPicker';
 
 function generateRandomRoomId() {
   const randomSuffix = Math.floor(1000 + Math.random() * 9000);
@@ -10,6 +12,7 @@ function generateRandomRoomId() {
 export function LobbyView({ onEnterRoom, initialRoomId, initialError = '' }) {
   const [activeTab, setActiveTab] = useState(initialRoomId ? 'join' : 'create');
   const [userName, setUserName] = useState(() => localStorage.getItem('poker_username') || '');
+  const [selectedAvatar, setSelectedAvatar] = useState(() => localStorage.getItem('poker_avatar') || TEAM_AVATARS[0].src);
   const [customRoomId, setCustomRoomId] = useState('');
   const [joinRoomId, setJoinRoomId] = useState(initialRoomId || '');
   const [selectedRole, setSelectedRole] = useState(ROLES.VOTER);
@@ -47,7 +50,6 @@ export function LobbyView({ onEnterRoom, initialRoomId, initialError = '' }) {
 
     // Jika custom ID diisi, validasi formatnya
     if (finalRoomId) {
-      // Hanya izinkan huruf, angka, dan tanda hubung (-)
       const isValidFormat = /^[a-z0-9-]+$/.test(finalRoomId);
       if (!isValidFormat) {
         setValidationError('ID Room hanya boleh berupa huruf kecil, angka, dan tanda strip (-). Tanpa spasi atau simbol.');
@@ -58,15 +60,16 @@ export function LobbyView({ onEnterRoom, initialRoomId, initialError = '' }) {
         return;
       }
     } else {
-      // Jika kosong, buatkan ID acak otomatis
       finalRoomId = generateRandomRoomId();
     }
 
     localStorage.setItem('poker_username', cleanName);
+    localStorage.setItem('poker_avatar', selectedAvatar);
     onEnterRoom({
       roomId: finalRoomId,
       userName: cleanName,
       role: selectedRole,
+      avatar: selectedAvatar,
       isHost: true,
     });
   };
@@ -86,10 +89,12 @@ export function LobbyView({ onEnterRoom, initialRoomId, initialError = '' }) {
     }
 
     localStorage.setItem('poker_username', cleanName);
+    localStorage.setItem('poker_avatar', selectedAvatar);
     onEnterRoom({
       roomId: cleanRoom,
       userName: cleanName,
       role: selectedRole,
+      avatar: selectedAvatar,
       isHost: false,
     });
   };
@@ -213,6 +218,12 @@ export function LobbyView({ onEnterRoom, initialRoomId, initialError = '' }) {
               </p>
             </div>
 
+            {/* Pilih Karakter Wajah */}
+            <AvatarPicker
+              selectedAvatar={selectedAvatar}
+              onSelectAvatar={setSelectedAvatar}
+            />
+
             {/* Role Options */}
             <div>
               <span className="block text-xs font-medium text-zinc-300 mb-1.5">
@@ -292,6 +303,12 @@ export function LobbyView({ onEnterRoom, initialRoomId, initialError = '' }) {
                 <User size={16} className="absolute right-3.5 top-3 text-zinc-500" />
               </div>
             </div>
+
+            {/* Pilih Karakter Wajah */}
+            <AvatarPicker
+              selectedAvatar={selectedAvatar}
+              onSelectAvatar={setSelectedAvatar}
+            />
 
             {/* Role Options */}
             <div>
